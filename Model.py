@@ -10,12 +10,13 @@ from openpyxl import load_workbook
 
 OrderData = pd.read_csv("OrderDataForNTU.txt", sep = ',', encoding = 'utf8')
 
-
-# 1.先刪掉買低於兩次的人，只取 orderData裡購買次數高於兩次的UUID們 => 存成一個List ）
-# 2. 計算這些人的平均購買週期（先算個別的購買週期，再求出所有人的平均購買週期）=>求出的數字為”多久未回購為流失“的值
-
 def FormateTime(date):
     return datetime.strptime(date, '%Y/%m/%d')
+
+def GetPeriod(dates):
+    dates.sort()
+    avg = (dates[-1] - dates[0])/ (len(dates)-1)
+    return avg
 
 tradeDates = OrderData['TradesDate'].tolist()
 UUIDs = OrderData['UUID'].tolist()
@@ -25,20 +26,19 @@ averageDate = [] # 購買次數高於兩次的人的購買週期
 
 for i,uuid in enumerate(list(set(UUIDs))):
     buyNums = UUIDs.count(uuid)
+    print(i,uuid)
     if buyNums >= 2:
         targetUUIDS.append(uuid)
+        rawDates = OrderData.loc[OrderData['UUID'] == uuid]['TradesDate'].tolist()
+        dates = list(map(FormateTime, rawDates))
+        del rawDates
         
-        dates = []
-        for index, globalId in enumerate(UUIDs):
-            if globalId == uuid:
-                dates.append(FormateTime(tradeDates[index]))
-        dates.sort()
-        avg = (dates[-1] - dates[0])/ (buyNums-1)
-        averageDate.append(avg)
+        averageDate.append(GetPeriod(dates))
         del dates
 
+avgPeriod = sum(averageDate, timedelta()) / len(averageDate)
 print("targetUUIDS = ", targetUUIDS)
-print("averageDate = ", mean(averageDate))
+print("averageDate = ", avgPeriod)
 
 # 3. 丟RNN (參考 “寶哥RNN顧客流失預測”)
 

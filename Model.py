@@ -40,5 +40,24 @@ avgPeriod = sum(averageDate, timedelta()) / len(averageDate)
 print("targetUUIDS = ", targetUUIDS)
 print("averageDate = ", avgPeriod)
 
-# 3. 丟RNN (參考 “寶哥RNN顧客流失預測”)
+# output:
+# averageDate = datetime.timedelta(days=85, seconds=10904, microseconds=556717)
+# 中位數 = datetime.timedelta(days=44, seconds=57600)
+
+def filterZeros(delta):
+    if delta == timedelta(0):
+        return False
+    else:
+        return True
+
+modifyAverageDate = list(filter(filterZeros, averageDate))
+modifyAverageDate.sort()
+nonZeroAvgPeriod = sum(modifyAverageDate, timedelta()) / len(modifyAverageDate)
+print("nonZeroAvgPeriod = ", nonZeroAvgPeriod)
+
+# output:
+# nonZeroAvgPeriod = datetime.timedelta(days=96, seconds=78825, microseconds=751115)
+# 中位數 = datetime.timedelta(days=55)
+
+
 

@@ -7,3 +7,20 @@ Final project for BigData
 2. 計算這些人的平均購買週期（先算個別的購買週期，再求出所有人的平均購買週期）=>求出的數字為”多久未回購為流失“的值
 3. 丟RNN
 
+### How to start?
+```
+import pickle
+```
+1. Get a target user list
+```
+users = []
+with open("targetUUIDs.pkl", 'rb') as f:
+    users = pickle.load(f)
+```
+
+2. Get (id to order) dictionary
+```
+user2Order = {}
+with open('User2Order.pkl', 'rb') as f:
+    user2Order = pickle.load(f)
+```

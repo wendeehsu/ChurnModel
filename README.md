@@ -14,7 +14,7 @@ Final project for BigData
 ```
 import pickle
 ```
-1. Get a target user list
+1. Get a target user list (下單次數大於等於2的人)
 ```
 users = []
 with open("targetUUIDs.pkl", 'rb') as f:
@@ -26,4 +26,10 @@ with open("targetUUIDs.pkl", 'rb') as f:
 user2Order = {}
 with open('User2Order.pkl', 'rb') as f:
     user2Order = pickle.load(f)
+```
+## Files
+```
+personalPeriods.pkl   # a dictionary (key, value) = (uuid,個人平均購物週期)
+targetMembers.pk1   # a pandas dataframe, derived from MemberData but store only data of target members (index is their uuid)
+sortedOrderData.pk1  # a pandas dataframe, derived from OrderData but store only data of target members (with a column "is_churn")
 ```

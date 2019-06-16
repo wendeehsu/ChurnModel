@@ -2,4 +2,6 @@
 *.excel
 *.ipynb
 *.txt
+*.xlsx
+sequences.pkl
 uuid2Behavior.pkl

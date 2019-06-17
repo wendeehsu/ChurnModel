@@ -4,6 +4,7 @@ import datetime as dt
 import pickle
 from sklearn.preprocessing import StandardScaler
 import math
+import statsmodels.api as sm
 
 def UntilNow(date):
 	d1 = dt.datetime.strptime(date, '%Y/%m/%d')
@@ -116,47 +117,159 @@ def TotalDiscountAverage(UUID):
 	TotalDiscount = user2Order[UUID]['TotalDiscount'].tolist()
 	return sum(TotalDiscount) / len(TotalDiscount)
 
-def OperationSystem(UUID):
-	df_test['HitDateTime'] = df_test['HitDateTime'].apply(lambda x : dt.datetime.strptime(x[:19], '%Y-%m-%d %H:%M:%S'))
-	df_test = df_test.sort_values(by = ['HitDateTime'])
-	
-	HitDateTime = df_test['HitDateTime'].tolist()
-	TrafficSourceCategory = df_test['TrafficSourceCategory'].tolist()
-	SessionNumber = df_test['SessionNumber'].tolist()
-	OperationSystem = df_test['OperationSystem'].tolist()
-	
-	diff1 = dt.timedelta(days = 1)
-	diff2 = dt.timedelta(minutes = 30)
+def OperationSystem_iOS(UUID):
+	if UUID in keys:
+		UUID_behavior = uuid2Behavior[UUID]		
+		UUID_behavior['HitDateTime'] = UUID_behavior['HitDateTime'].apply(lambda x : dt.datetime.strptime(x[:19], '%Y-%m-%d %H:%M:%S'))
+		UUID_behavior = UUID_behavior.sort_values(by = ['HitDateTime'])
+		
+		HitDateTime = UUID_behavior['HitDateTime'].tolist()
+		TrafficSourceCategory = UUID_behavior['TrafficSourceCategory'].tolist()
+		SessionNumber = UUID_behavior['SessionNumber'].tolist()
+		OperationSystem = UUID_behavior['OperationSystem'].tolist()
+		
+		diff1 = dt.timedelta(days = 1)
+		diff2 = dt.timedelta(minutes = 30)
 
-	os = []
-	
-	for i in range(len(HitDateTime) - 1):
-		same_session = False
-		combine = False
-		if HitDateTime[i].date() == HitDateTime[i + 1].date():
-			if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
-				if SessionNumber[i] == SessionNumber[i + 1]:
-					same_session = True
-		elif (HitDateTime[i] + diff1).date() == HitDateTime[i + 1].date():
-			if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
-				if (HitDateTime[i] + diff2) >= HitDateTime[i + 1]:
-					same_session = True
-					combine = True
-		if same_session == False:
-			if combine == False:
-				os.append(OperationSystem[i])
-	
-	iOS = 0.0
-	Android = 0.0
-	
-	for i, j in enumerate(os):
-		if j == 'Android':
-			Android += math.log(i + 1)
-		elif j == 'iOS':
-			iOS += math.log(i + 1)
-	
-	return iOS, Android
-'''
+		os = []
+		
+		for i in range(len(HitDateTime) - 1):
+			same_session = False
+			combine = False
+			if HitDateTime[i].date() == HitDateTime[i + 1].date():
+				if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+					if SessionNumber[i] == SessionNumber[i + 1]:
+						same_session = True
+			elif (HitDateTime[i] + diff1).date() == HitDateTime[i + 1].date():
+				if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+					if (HitDateTime[i] + diff2) >= HitDateTime[i + 1]:
+						same_session = True
+						combine = True
+			if same_session == False:
+				if combine == False:
+					os.append(OperationSystem[i])
+		
+		iOS = 0.0
+		Android = 0.0
+		
+		for i, j in enumerate(os):
+			if j == 'Android':
+				Android += math.log(i + 1)
+			elif j == 'iOS':
+				iOS += math.log(i + 1)
+		return iOS
+	else:
+		return 0.0
+
+def OperationSystem_Android(UUID):
+	if UUID in keys:
+		UUID_behavior = uuid2Behavior[UUID]
+		
+		# UUID_behavior['HitDateTime'] = UUID_behavior['HitDateTime'].apply(lambda x : dt.datetime.strptime(x[:19], '%Y-%m-%d %H:%M:%S'))
+		UUID_behavior = UUID_behavior.sort_values(by = ['HitDateTime'])
+		
+		HitDateTime = UUID_behavior['HitDateTime'].tolist()
+		TrafficSourceCategory = UUID_behavior['TrafficSourceCategory'].tolist()
+		SessionNumber = UUID_behavior['SessionNumber'].tolist()
+		OperationSystem = UUID_behavior['OperationSystem'].tolist()
+		
+		diff1 = dt.timedelta(days = 1)
+		diff2 = dt.timedelta(minutes = 30)
+
+		os = []
+		
+		for i in range(len(HitDateTime) - 1):
+			same_session = False
+			combine = False
+			if HitDateTime[i].date() == HitDateTime[i + 1].date():
+				if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+					if SessionNumber[i] == SessionNumber[i + 1]:
+						same_session = True
+			elif (HitDateTime[i] + diff1).date() == HitDateTime[i + 1].date():
+				if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+					if (HitDateTime[i] + diff2) >= HitDateTime[i + 1]:
+						same_session = True
+						combine = True
+			if same_session == False:
+				if combine == False:
+					os.append(OperationSystem[i])
+		
+		iOS = 0.0
+		Android = 0.0
+		
+		for i, j in enumerate(os):
+			if j == 'Android':
+				Android += math.log(i + 1)
+			elif j == 'iOS':
+				iOS += math.log(i + 1)
+		return Android
+	else:
+		return 0.0
+
+def SessionTrend(UUID):
+	if UUID in keys:
+		UUID_behavior = uuid2Behavior[UUID]		
+		UUID_behavior = UUID_behavior.sort_values(by = ['HitDateTime'])
+		
+		HitDateTime = UUID_behavior['HitDateTime'].tolist()
+		TrafficSourceCategory = UUID_behavior['TrafficSourceCategory'].tolist()
+		SessionNumber = UUID_behavior['SessionNumber'].tolist()
+		OperationSystem = UUID_behavior['OperationSystem'].tolist()
+		
+		diff1 = dt.timedelta(days = 1)
+		diff2 = dt.timedelta(minutes = 30)
+
+		sessions_start = [HitDateTime[0]]
+		sessions_end = []
+		if len(HitDateTime) > 1:
+			for i in range(len(HitDateTime) - 1):
+				same_session = False
+				combine = False
+				if HitDateTime[i].date() == HitDateTime[i + 1].date():
+					if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+						if SessionNumber[i] == SessionNumber[i + 1]:
+							same_session = True
+				elif (HitDateTime[i] + diff1).date() == HitDateTime[i + 1].date():
+					if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+						if (HitDateTime[i] + diff2) >= HitDateTime[i + 1]:
+							same_session = True
+							combine = True
+				
+				if same_session == False:
+					if combine == False:
+						sessions_start.append(HitDateTime[i + 1])
+						sessions_end.append(HitDateTime[i])
+			sessions_start = sessions_start[ : len(sessions_start) - 1]
+		else:
+			return 0
+			
+		sessions_start = np.array(sessions_start)
+		sessions_end = np.array(sessions_end)
+		sessions_time = sessions_end - sessions_start
+		sessions_time = sessions_time.tolist()
+		
+		X = []
+		
+		for i in range(len(sessions_time)):
+			sessions_time[i] = sessions_time[i].seconds
+			X.append(i + 1)
+		
+		print(UUID)
+		
+		if X == [] or sessions_time == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(sessions_time, X)
+		results = model.fit()
+		
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
+
+
 # 讀入所有下單>=2的人的memberdata
 targetMembers = {}
 with open('targetMembers.pk1', 'rb') as f:
@@ -176,7 +289,6 @@ X = df.loc[:,['UUID', 'OnlineMemberId', 'RegisterDate', 'MemberCardLevel']]
 X['UUID'] = X.index
 # 把遺失值統一填入0
 X = X.fillna(0)
-
 
 # 處理MemberData
 X['OnlineMemberId'] = X['OnlineMemberId'].apply(lambda x : 0 if x == 0 else 1)
@@ -216,24 +328,226 @@ X['TsCountAverage'] = X['UUID'].apply(TsCountAverage)
 X['QtyAverage'] = X['UUID'].apply(QtyAverage)
 X['TotalSalesAmountAverage'] = X['UUID'].apply(TotalSalesAmountAverage)
 X['TotalDiscountAverage'] = X['UUID'].apply(TotalDiscountAverage)
-'''
+
+print('接下來進入behavior data ...')
+
+# 讀入behavior data
+uuid2Behavior = {}
+with open('uuid2Behavior.pkl', 'rb') as f:
+    uuid2Behavior = pickle.load(f)
+keys = list(uuid2Behavior.keys())
+
 # 處理behavior data
+# Operating System
+X['OperationSystem_iOS'] = X['UUID'].apply(OperationSystem_iOS)
+X['OperationSystem_Android'] = X['UUID'].apply(OperationSystem_Android)
+# 瀏覽時間趨勢
+X['SessionTrend'] = X['UUID'].apply(SessionTrend)
+# 各項行為趨勢
+def BehaviorTypeTrend(keys):
+	
+	behaviordict = dict()
+	session_num_dict = dict()
+	
+	for j in keys: # loop每一個有行為的人
+		
+		UUID_behavior = uuid2Behavior[j]
+		UUID_behavior = UUID_behavior.sort_values(by = ['HitDateTime'])
 
-testBehaveData = {}
-with open('testBehaveData.pkl', 'rb') as f:
-    testBehaveData = pickle.load(f)
+		HitDateTime = UUID_behavior['HitDateTime'].tolist()
+		TrafficSourceCategory = UUID_behavior['TrafficSourceCategory'].tolist()
+		SessionNumber = UUID_behavior['SessionNumber'].tolist()
+		OperationSystem = UUID_behavior['OperationSystem'].tolist()
+		BehaviorType = UUID_behavior['BehaviorType'].tolist()
+		
+		diff1 = dt.timedelta(days = 1)
+		diff2 = dt.timedelta(minutes = 30)		
+		
+		behaviorlist = []
+		session_num_list = []
+		
+		if len(HitDateTime) > 1:
+			for i in range(len(HitDateTime) - 1):
+				same_session = False
+				combine = False
+				if HitDateTime[i].date() == HitDateTime[i + 1].date():
+					if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+						if SessionNumber[i] == SessionNumber[i + 1]:
+							same_session = True
+				elif (HitDateTime[i] + diff1).date() == HitDateTime[i + 1].date():
+					if TrafficSourceCategory[i] == TrafficSourceCategory[i + 1]:
+						if (HitDateTime[i] + diff2) >= HitDateTime[i + 1]:
+							same_session = True
+							combine = True
+				if same_session == False:
+					if combine == False:
+						behaviorlist.append(BehaviorType[i])
+						session_num_list.append(SessionNumber[i])
+			behaviordict[j] = [behaviorlist, session_num_list]
+		else:
+			session_num_list.append(SessionNumber[0])
+			behaviorlist.append(BehaviorType[0])
+			behaviordict[j] = [behaviorlist,session_num_list]
+	return behaviordict
 
-df_test = pd.DataFrame.from_dict(testBehaveData)
+def BehaviorTypeTrend_Purchase(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'Purchase':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('Purchase', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
 
-X['OperationSystem_iOS'], X['OperationSystem_Android'] = X['UUID'].apply(OperationSystem)
+def BehaviorTypeTrend_Fav(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'Fav':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('Fav', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
 
+def BehaviorTypeTrend_Search(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'Search':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('Search', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
+		
+def BehaviorTypeTrend_ViewSalePageCategory(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'ViewSalePageCategory':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('ViewSalePageCategory', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
 
+def BehaviorTypeTrend_Cart(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'Cart':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('Cart', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
 
-pd.set_option('display.max_columns', 500) #最大列數
+def BehaviorTypeTrend_ViewSalePage(UUID):
+	if UUID in keys:		
+		UUID_behavior_typelist, UUID_behavior_session_num_list = behavedict[UUID]
+		X = []
+		y = []
+		
+		for i, j in enumerate(UUID_behavior_typelist):
+			if j == 'ViewSalePage':
+				X.append(i + 1)
+				y.append(UUID_behavior_session_num_list[i])
+		
+		if X == [] or y == []:
+			return 0
+		
+		X = sm.add_constant(X)
+		model = sm.OLS(y, X)
+		results = model.fit()
+		print('ViewSalePage', UUID)
+		if len(results.params) == 1:
+			return results.params[0]
+		return results.params[1]
+	else:
+		return 0
+
+behavedict = BehaviorTypeTrend(keys)
+X['BehaviorTypeTrend_Purchase'] = X['UUID'].apply(BehaviorTypeTrend_Purchase)
+X['BehaviorTypeTrend_Fav'] = X['UUID'].apply(BehaviorTypeTrend_Fav)
+X['BehaviorTypeTrend_Search'] = X['UUID'].apply(BehaviorTypeTrend_Search)
+X['BehaviorTypeTrend_ViewSalePageCategory'] = X['UUID'].apply(BehaviorTypeTrend_ViewSalePageCategory)
+X['BehaviorTypeTrend_Cart'] = X['UUID'].apply(BehaviorTypeTrend_Cart)
+X['BehaviorTypeTrend_ViewSalePage'] = X['UUID'].apply(BehaviorTypeTrend_ViewSalePage)
+
+#pd.set_option('display.max_columns', 500) #最大列數
 pd.set_option('display.width', 4000) #頁面宽度
-print(TimeFormulate_and_Sort(df_test))
-# X = X.drop(['UUID', 'MemberCardLevel'], axis=1)
-# # print(X.head())
+#print(X.loc[X['SessionTrend'] != 0])
 
-# #X.to_excel("FeatureMatrix.xlsx")
-# #X.to_pickle("FeatureMatrix.pkl")
+X = X.drop(['UUID', 'MemberCardLevel'], axis=1)
+print(X.head())
+
+X.to_excel("FeatureMatrix.xlsx")
+X.to_pickle("FeatureMatrix.pkl")

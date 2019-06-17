@@ -31,177 +31,135 @@ OrderData.head()
 # In[4]:
 
 
-personalPeriods = {}
-with open("personalPeriods.pkl", 'rb') as f:
-    personalPeriods = pickle.load(f)
+targetMemberOrderData = OrderData[(-pd.isna(OrderData.sinceLastOrder)) & 
+                                  (OrderData.TotalSalesAmount > 0)]
 
 
 # In[5]:
 
 
-personalPeriods
-
-
-# In[6]:
-
-
-targetMemberOrderData = OrderData[(-pd.isna(OrderData.sinceLastOrder)) & 
-                                  (OrderData.TotalSalesAmount > 0)]
+targetMemberOrderData.head()
 
 
 # In[7]:
 
 
-targetMemberOrderData.head(10)
+targetMemberOrderData.shape
 
 
-# In[27]:
+# In[8]:
+
+
+with open("newLabel.pk1", 'rb') as f:
+    labels = pickle.load(f)
+
+
+# In[10]:
+
+
+targetMemberOrderData["is_churn"] = targetMemberOrderData["UUID"].map(labels)
+
+
+# In[11]:
 
 
 def FormateDate(d):
     return datetime.strptime(d,"%Y/%m/%d")
 
-
-# In[28]:
-
-
 targetMemberOrderData["TradesDate"] = targetMemberOrderData["TradesDate"].apply(FormateDate)
 
 
-# In[31]:
+# In[12]:
 
 
 targetMemberOrderData = targetMemberOrderData.sort_values(by='TradesDate')
 targetMemberOrderData.head(10)
 
 
-# In[32]:
+# In[17]:
+
+
+sinceLastOrder = targetMemberOrderData["sinceLastOrder"].tolist()
+UUID = targetMemberOrderData["UUID"].tolist()
+uuid2LastOrder = {}
+for i,uuid in enumerate(UUID):
+    uuid2LastOrder[uuid] = sinceLastOrder[i]
+
+
+# In[19]:
+
+
+len(uuid2LastOrder.keys())
+
+
+# In[13]:
 
 
 data_matrix = targetMemberOrderData.pivot_table(columns=['TradesDate'],index=['UUID'],aggfunc='size').fillna(0)
 data_matrix.head()
 
 
-# In[43]:
+# In[14]:
 
 
 dates = list(data_matrix.columns.values.astype('datetime64[D]'))
 dates
 
 
-# In[50]:
-
-
-def Distance(d):
-    return (np.datetime64('2019-05-01') - d )/ np.timedelta64(1, 'D')
-
-
 # In[51]:
 
 
-distances = list(map(Distance, dates))
-distances # sorted
+def GetSequence(rawSequence, lastDay):
+    lastDay = int(lastDay)
+    if lastDay <= 0:
+        return [0] * 1225
+    return [0] * (lastDay + (1225 - len(rawSequence))) + rawSequence[:-lastDay]
 
 
-# In[53]:
-
-
-personalPeriods = {}
-with open("personalPeriods.pkl", 'rb') as f:
-    personalPeriods = pickle.load(f)
-
-
-# In[65]:
-
-
-a = [0,1,2,3,4,5]
-k = 2
-[0] * (7 - (k+1)) + a[:k+1]
-
-
-# In[66]:
-
-
-def GetSequence(rawSequence, personalPeriod):
-    personalSequece = []
-    predictPeriod = personalPeriod *1.5
-    if predictPeriod >= 1217:
-         personalSequece = [0] *1225
-    else:
-        index = 0
-        for (i, distance) in enumerate(distances):
-            if distance > predictPeriod:
-                index = i
-            else:
-                break
-        personalSequece = [0] * (1225 - (index+1)) + rawSequence[:index+1]
-        
-    return personalSequece
-
-
-# In[69]:
+# In[52]:
 
 
 sequenceDic = {}
-for i in personalPeriods:
+for i in uuid2LastOrder:
     rawSequence = data_matrix.loc[i].tolist()
-    sequenceDic[i] = GetSequence(rawSequence, personalPeriods[i])
+    sequenceDic[i] = GetSequence(rawSequence, uuid2LastOrder[i])
 
 
-# In[70]:
-
-
-sequenceDic
-
-
-# In[71]:
+# In[54]:
 
 
 with open("sequences.pkl", 'wb') as f:
     pickle.dump(sequenceDic, f)
 
 
-# In[72]:
+# In[56]:
 
 
 df = pd.DataFrame(sequenceDic)
-df
-
-
-# In[73]:
-
-
-df = df.transpose()
-
-
-# In[74]:
-
-
 df.head()
 
 
-# In[75]:
+# In[57]:
 
 
-labelDict = {}
-with open("labels.pkl", 'rb') as f:
-    labelDict = pickle.load(f)
+df = df.transpose()
+df.head()
 
 
-# In[77]:
+# In[58]:
 
 
-df["is_churn"] = df.index.to_series().map(labelDict)
+df["is_churn"] = df.index.to_series().map(labels)
 df.head(10)
 
 
-# In[93]:
+# In[59]:
 
 
 df.is_churn.value_counts()
 
 
-# In[81]:
+# In[60]:
 
 
 OrderDate2Result = df
@@ -210,14 +168,14 @@ target = OrderDate2Result.values[:,-1]
 data_matrix_x = OrderDate2Result.values[:,-(1+interval):-1].reshape(-1,35,35)
 
 
-# In[82]:
+# In[61]:
 
 
 print(data_matrix_x.shape)
 print(target.shape)
 
 
-# In[83]:
+# In[62]:
 
 
 from sklearn.model_selection import train_test_split
@@ -225,17 +183,13 @@ X_train, X_test, y_train, y_test = train_test_split(
     data_matrix_x,target ,test_size=0.33, stratify=target)
 
 
-# In[84]:
+# In[63]:
 
 
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.utils.data as Data
-
-
-# In[85]:
-
 
 class LSTM(nn.Module):
     def __init__(self,input_size,hidden_dim,dropout=0.3):
@@ -252,14 +206,14 @@ class LSTM(nn.Module):
         return out
 
 
-# In[86]:
+# In[64]:
 
 
 lstm = LSTM(35,32).double()
 print(lstm) 
 
 
-# In[87]:
+# In[65]:
 
 
 optimizer = torch.optim.Adam(lstm.parameters(), lr=0.01)
@@ -276,7 +230,7 @@ loader = Data.DataLoader(
 )
 
 
-# In[88]:
+# In[66]:
 
 
 for epoch in range(6):   
@@ -289,7 +243,7 @@ for epoch in range(6):
     print('Epoch: ', epoch, '| Loss: ', loss.data.item())
 
 
-# In[89]:
+# In[67]:
 
 
 from sklearn.metrics import accuracy_score, classification_report
@@ -299,7 +253,7 @@ print("accuracy_score = ", accuracy_score(y_test,pred_y))
 print(classification_report(y_test, pred_y))
 
 
-# In[90]:
+# In[68]:
 
 
 #------------------------------------train--------------------------------
@@ -309,7 +263,7 @@ print("accuracy_score = ",accuracy_score(y_train, pred_y_train))
 print(classification_report(y_train, pred_y_train))
 
 
-# In[91]:
+# In[71]:
 
 
 import matplotlib.pyplot as plt
@@ -352,7 +306,7 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
 
 
-# In[92]:
+# In[72]:
 
 
 from sklearn.metrics import confusion_matrix

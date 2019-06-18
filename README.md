@@ -64,5 +64,25 @@ LSTM 若為一層：accuracy score = 0.76865 <br/>
 LSTM 若為兩層：accuracy score = 0.80945 <br/>
 LSTM 若為三層：accuracy score = 0.81150 <br/>
 
-# Method 2 : Feature Engineering
+## Method 2 : Feature Engineering
+related file: `FeatureEngineering.py`, `MLmodel.py`
 
+1. Feature generating (turning non-numerical data into numbers via one-hot encoding)<br/>
+in file `FeatureEngineering.py`, we select 39 features from the three given data set (Member/Order/Behavior), then process them into numeric forms
+
+2. 標準化處理
+```
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+```
+3. use various classification methods to predict and test their performance
+* `DecisionTree`<br/>
+accuracy score: 0.85955
+* `SVM` <br/>
+accuracy score: 0.84256
+* `RandomForestClassifier` <br/>
+accuracy score: 0.87384
+4. sort features based on their importance
+```
+clf_RandomForest.feature_importances_
+```

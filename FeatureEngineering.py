@@ -272,15 +272,15 @@ def SessionTrend(UUID):
 
 # 讀入所有下單>=2的人的memberdata
 targetMembers = {}
-with open('targetMembers.pk1', 'rb') as f:
+with open('pickle/targetMembers.pkl', 'rb') as f:
     targetMembers = pickle.load(f)
 # 讀入所有下單>=2的人的orderdata
 user2Order = {}
-with open('User2Order.pkl', 'rb') as f:
+with open('pickle/User2Order.pkl', 'rb') as f:
     user2Order = pickle.load(f)
 # 讀入target user list
 users = []
-with open('targetUUIDs.pkl', 'rb') as f:
+with open('pickle/targetUUIDs.pkl', 'rb') as f:
     users = pickle.load(f)
 
 df = pd.DataFrame.from_dict(targetMembers)
@@ -333,7 +333,7 @@ print('接下來進入behavior data ...')
 
 # 讀入behavior data
 uuid2Behavior = {}
-with open('uuid2Behavior.pkl', 'rb') as f:
+with open('pickle/uuid2Behavior.pkl', 'rb') as f:
     uuid2Behavior = pickle.load(f)
 keys = list(uuid2Behavior.keys())
 

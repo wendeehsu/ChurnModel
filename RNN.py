@@ -18,7 +18,7 @@ from openpyxl import load_workbook
 # In[2]:
 
 
-with open("sortedOrderData.pk1", 'rb') as f:
+with open("pickle/sortedOrderData.pkl", 'rb') as f:
     OrderData = pickle.load(f)
 
 
@@ -97,13 +97,6 @@ len(uuid2LastOrder.keys())
 
 data_matrix = targetMemberOrderData.pivot_table(columns=['TradesDate'],index=['UUID'],aggfunc='size').fillna(0)
 data_matrix.head()
-
-
-# In[14]:
-
-
-dates = list(data_matrix.columns.values.astype('datetime64[D]'))
-dates
 
 
 # In[51]:
@@ -196,13 +189,16 @@ class LSTM(nn.Module):
         super().__init__()
         self.input_size = input_size
         self.hidden_dim = hidden_dim
-        self.lstm = nn.LSTM(input_size=input_size,hidden_size=hidden_dim,num_layers=2,dropout=dropout,batch_first=True)
+        self.lstm = nn.LSTM(input_size=input_size,
+                            hidden_size=hidden_dim,
+                            num_layers=2,
+                            dropout=dropout,
+                            batch_first=True)
         self.fc1 = nn.Linear(hidden_dim, 2)
     def forward(self, seq_in):
         lstm_out, (h_n,h_c) = self.lstm(seq_in,None)
-        ht = lstm_out[:, -1, :]
-        #convert to fully connected
-        out = self.fc1(ht)
+        ht = lstm_out[:, -1, :]  # just want last time step hidden states
+        out = self.fc1(ht)       # convert to fully connected
         return out
 
 
@@ -221,7 +217,8 @@ loss_func = nn.CrossEntropyLoss()
 
 torch.manual_seed(42)    # reproducible
 BATCH_SIZE = 200 
-torch_dataset = Data.TensorDataset(Variable(torch.DoubleTensor(X_train)),Variable(torch.LongTensor(y_train)))
+torch_dataset = Data.TensorDataset(
+    Variable(torch.DoubleTensor(X_train)),Variable(torch.LongTensor(y_train)))
 loader = Data.DataLoader(
     dataset=torch_dataset,      # torch TensorDataset format
     batch_size=BATCH_SIZE,      # mini batch size

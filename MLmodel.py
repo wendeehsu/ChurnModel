@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 dataWithLable = {}
-with open('dataWithNewLabel.pk1', 'rb') as f:
+with open('pickle/dataWithLabel.pkl', 'rb') as f:
     dataWithLable = pickle.load(f)
 
 df = pd.DataFrame.from_dict(dataWithLable)

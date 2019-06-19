@@ -63,6 +63,7 @@ LSTM(
 LSTM 若為一層：accuracy score = 0.76865 <br/>
 LSTM 若為兩層：accuracy score = 0.80945 <br/>
 LSTM 若為三層：accuracy score = 0.81150 <br/>
+(三層的結果在 NetWork.html )
 
 ## Method 2 : Feature Engineering
 related file: `FeatureEngineering.py`, `MLmodel.py`

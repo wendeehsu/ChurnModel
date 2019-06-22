@@ -50,7 +50,7 @@ targetMemberOrderData.shape
 # In[8]:
 
 
-with open("newLabel.pk1", 'rb') as f:
+with open("pickle/Labels.pkl", 'rb') as f:
     labels = pickle.load(f)
 
 
@@ -121,7 +121,7 @@ for i in uuid2LastOrder:
 # In[54]:
 
 
-with open("sequences.pkl", 'wb') as f:
+with open("pickle/sequences.pkl", 'wb') as f:
     pickle.dump(sequenceDic, f)
 
 

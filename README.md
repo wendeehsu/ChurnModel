@@ -1,5 +1,18 @@
 # ChurnModel
-Final project for BigData
+
+## How to start?
+
+### Prerequisites
+please install `numpy`, `pandas`, `xlsxwriter`, `pickle`, `openpyxl` via `pip3 install`
+
+### Run files
+* RNN <br/>
+can run `RNN.py` (2 layer LSTM) directly as I transformed the OrderData into a pickle file <br/>
+can change the layer number to three for a better outcome or run `NetWork.py` afterwards (which is a 3 Layer LSTM)
+
+* Feature engineering
+run `FeatureEngineering.py` as it will generate a pickle file and an excel file storing the raw feature matrix. <br/>
+Then run `MLmodel.py` which perform standardization and prints the output in the console of each prediction model.
 
 ## Spec
 1. 先刪掉買低於兩次的人，只取 orderData裡購買次數高於兩次的UUID們 => 存進 `targetUUIDs.pkl`
